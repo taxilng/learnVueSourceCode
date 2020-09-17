@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Document</title>
+    </head>
+    <body>
+        <script>
+            const ARRAY_METHOD = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
+            const array_method = Object.create(Array.prototype)
+            ARRAY_METHOD.forEach(method => {
+                array_method[ method ] = function () {
+                    console.log('调用的是拦截的' + method + '方法');
+                    // 将数据进行 响应式化
+                    for(let i = 0; i < arguments.length; i++) {
+                        reactify ( arguments[i] )
+                    }
+                    const res = Array.prototype[method].apply(this, arguments)
+                    return res
+                }
+            })
+
+
+            // 将对象 o 响应式化
+            function reactify(o) {
+                let keys = Object.keys(o)
+                for( let i = 0; i< keys.length; i++ ) {
+                    const key = keys[i] // 属性名
+                    const value = o[key]
+                    if(Array.isArray(value)) {
+                        value.__proto__ = array_method
+                        for(let j = 0; j< value.length; j++) {
+                            reactify(value[j])
+                        }
+                    } else {
+                        defineReactive( o, key, value, true )
+                    }
+                } 
+            }
+            // 简化后的版本
+            function defineReactive(target, key, value, enumerable) {
+                if(typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                    reactify(value) // 递归
+                }
+
+                Object.defineProperty( target, key, {
+                    configurable: true,
+                    enumerable: !!enumerable,
+                    get() {
+                        console.log(`读取${key}属性`);
+                        return value
+                    },
+                    set( newVal ) {
+                        console.log(`设置${key}属性为: ${newVal}`);
+                        value = newVal
+                    }
+                })
+            }
+
+            class JGVue {
+                this._data = options.data
+                const elm = document.querySelector( options.el )
+                this._template = elm
+                this._parent = elm.parentNode
+                this.mount() // 挂载
+                createRenderFn() {
+                    let ast = get
+                }
+            }
+            JGVue
+        </script>
+    </body>
+</html>
