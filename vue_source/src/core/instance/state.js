@@ -271,7 +271,7 @@ function createComputedGetter (key) {
         那是就是查询this.b 会触发第二次pushTarget B
         然后触发 popTarget B
         这时候就是push了2次 只能删除1次。
-        最后Dep.target就有值了
+        最后Dep.target就有值了,值为 A的watcher实例
     */
       if (Dep.target) {
         watcher.depend()

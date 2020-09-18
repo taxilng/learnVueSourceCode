@@ -35,7 +35,7 @@ export default class Dep {
     // Dep.target为什么会有 watcher的方法
     // 因为pushTarget(this)，在watcher里面调用了；this是Watcher的实例
     // Dep.target = new Watcher()
-      Dep.target.addDep(this)
+      Dep.target.addDep(this) //这里的this,是看谁调用Dep.depend方法，都是些Dep实例
     }
   }
 

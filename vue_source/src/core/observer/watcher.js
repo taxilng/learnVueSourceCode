@@ -116,6 +116,7 @@ export default class Watcher {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
       //“触摸”每个属性，以便将它们作为深度监视的依赖项进行跟踪
+      // 初始化computed时 deep:false，这个方法不走
       if (this.deep) {
         traverse(value)
       }
@@ -132,10 +133,11 @@ export default class Watcher {
   addDep (dep: Dep) {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
+     // newDepIds 没有就push，同时 newDeps也push
       this.newDepIds.add(id)
-      this.newDeps.push(dep)
+      this.newDeps.push(dep) //这是newDeps唯一的来源
       if (!this.depIds.has(id)) {
-        dep.addSub(this)
+        dep.addSub(this)//这里是this是watcher实例
       }
     }
   }
@@ -145,6 +147,7 @@ export default class Watcher {
    * 清理依赖性集合。
    */
   cleanupDeps () {
+    // get方法的首次执行 this.deps= [] 遍历不执行
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
@@ -152,12 +155,21 @@ export default class Watcher {
         dep.removeSub(this)
       }
     }
+    // this.depIds <==> this.newDepIds 完成了交换
+    // this.deps <==> this.newDepIds 完成了交换
+    // 最后把 newDepIds，newDeps 清空了
+    //也可以不借助第三方变量tmp来实现，例如
+    // depIds = newDepIds; newDepIds = new Set()
+    // 那么跟源代码比有什么缺点呢？ newDepIds = new Set()就相当于开辟了个新内存地址给变量，这样内存开销就大了；而vue源码没有占用新内存；一直都是depIds，newDepIds这两个内存地址之间互相转换。
+    //理解了尤大的a,b交换值，然后清空b值你只在第一层；而尤大节约内存则在第二层；
+    //this.newDeps.length = 0 相比较 this.newDeps = [] 也是节约内存
+
     let tmp = this.depIds
     this.depIds = this.newDepIds
     this.newDepIds = tmp
     this.newDepIds.clear()
     tmp = this.deps
-    this.deps = this.newDeps
+    this.deps = this.newDeps // 这是deps唯一的赋值
     this.newDeps = tmp
     this.newDeps.length = 0
   }
@@ -225,6 +237,7 @@ export default class Watcher {
   depend () {
     let i = this.deps.length
     while (i--) {
+      // 调用的Dep.js里面的depend方法
       this.deps[i].depend()
     }
   }
