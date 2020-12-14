@@ -17,7 +17,12 @@
                 return {
                     a:1
                 }
-            }
+            },
+            mounted(){
+                setTimeout(() => {
+                    this.a = 2
+                }, 1000);
+            },
         })
     </script>
 </body>

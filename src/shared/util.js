@@ -22,6 +22,7 @@ export function isFalse (v: any): boolean %checks {
 
 /**
  * Check if value is primitive.
+ * 检查值是否为原始值，字符串，数字，symbol，布尔类型的值
  */
 export function isPrimitive (value: any): boolean %checks {
   return (
@@ -37,6 +38,7 @@ export function isPrimitive (value: any): boolean %checks {
  * Quick object check - this is primarily used to tell
  * Objects from primitive values when we know the value
  * is a JSON-compliant type.
+ * 快速对象检查-主要用于判断, 包含了数组
  */
 export function isObject (obj: mixed): boolean %checks {
   return obj !== null && typeof obj === 'object'
@@ -54,6 +56,7 @@ export function toRawType (value: any): string {
 /**
  * Strict object type check. Only returns true
  * for plain JavaScript objects.
+ * 严格的对象类型检查，排除数组
  */
 export function isPlainObject (obj: any): boolean {
   return _toString.call(obj) === '[object Object]'
@@ -65,9 +68,14 @@ export function isRegExp (v: any): boolean {
 
 /**
  * Check if val is a valid array index.
+ * 检查val是否为有效的数组索引
  */
 export function isValidArrayIndex (val: any): boolean {
+    //兼容 字符串'1'这样的
+     //parseFloat(string) 默认参数为string，严格语法就是转成String
   const n = parseFloat(String(val))
+    // 索引当然要大于等于0， 向下取整 必须 等于 自己 ；
+    // isFinite() 函数用于检查其参数是否是无穷大，如果 number 是 NaN（非数字），或者是正、负无穷大的数，则返回 false。
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
 
@@ -149,20 +157,28 @@ export function hasOwn (obj: Object | Array<*>, key: string): boolean {
 
 /**
  * Create a cached version of a pure function.
+ * 缓存函数调用的结果
  */
 export function cached<F: Function> (fn: F): F {
-  const cache = Object.create(null)
+  const cache = Object.create(null) //创建一个空对象用于接收
+   // 返回一个函数
   return (function cachedFn (str: string) {
     const hit = cache[str]
+    //假设没有缓存这个结果，就把它存起来cache[str] = fn(str) 如果有缓存，直接返回
     return hit || (cache[str] = fn(str))
   }: any)
 }
 
 /**
  * Camelize a hyphen-delimited string.
+ * 连接符 改成 驼峰
  */
+// 正则 - 匹配 - ，\w 匹配字母或数字或下划线
 const camelizeRE = /-(\w)/g
 export const camelize = cached((str: string): string => {
+     // replace 接正则， 第二个参数为函数， return 出 替换的值；
+    // 第一个参数 _ 匹配的是正则的完整值，例如 'a-b' 匹配到 '-b'
+    // 第二参数 匹配到 () 括号里面的匹配值，例如 'a-b' 匹配到 'b' 
   return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : '')
 })
 
@@ -214,6 +230,8 @@ export const bind = Function.prototype.bind
 
 /**
  * Convert an Array-like object to a real Array.
+ * 将类似Array的对象转换为真实的Array。
+ * 第二个参数比较 有意思，设置开始复制的下标，默认值0
  */
 export function toArray (list: any, start?: number): Array<any> {
   start = start || 0
@@ -227,6 +245,22 @@ export function toArray (list: any, start?: number): Array<any> {
 
 /**
  * Mix properties into target object.
+ * 将_from的属性混合（会覆盖）to对象中
+ * 有污染的改变增加target object的属性
+ * for in 可以拷贝继承属性，不可以拷贝 symbol
+ * Object.assign 可以拷贝symbol，不可以拷贝继承属性
+ * 这就是这个方法与object.assign的区别
+ * demo
+ * mys1 = Symbol('foo');
+ * mys2 = Symbol('fzk');
+ * var o1 = {a:1, [mys1]:5};
+ * o1.__proto__ = {c:3}
+ * var o2 = {b:2,  [mys2]: 6};
+ * o2.__proto__ = {d:4};
+ * var o3 = Object.assign(o1, o2)
+ * for (var key in o1) {
+ *    console.log(key, o1[key])
+ *}
  */
 export function extend (to: Object, _from: ?Object): Object {
   for (const key in _from) {

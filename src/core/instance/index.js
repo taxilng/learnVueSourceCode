@@ -5,7 +5,9 @@ import { eventsMixin } from './events'
 import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 
+// 定义vue构造函数
 function Vue (options) {
+// rollup打包编译把(process.env.NODE_ENV 编译成 development
   if (process.env.NODE_ENV !== 'production' &&
     !(this instanceof Vue)
   ) {

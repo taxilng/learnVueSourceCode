@@ -13,13 +13,15 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 let uid = 0
 
 export function initMixin (Vue: Class<Component>) {
+  // 原型方法 _init
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
     // a uid
-    vm._uid = uid++
+    vm._uid = uid++ // 生成唯一的实例属性 _uid 
 
     let startTag, endTag
     /* istanbul ignore if */
+    // config.performance是否记录性能
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
@@ -27,16 +29,20 @@ export function initMixin (Vue: Class<Component>) {
     }
 
     // a flag to avoid this being observed
+    // 一个标志，以避免被观察到，详见observer/index.js代码；
     vm._isVue = true
     // merge options
+    // options就是我们写的 data methods mounted 之类的
+    // 组件化才走这个判断，具体未知
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
+      //通常走这里
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
+        resolveConstructorOptions(vm.constructor), //将Vue.options 取出
         options || {},
         vm
       )
@@ -91,6 +97,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  //Ctor 是vue构造函数本身
   let options = Ctor.options
   if (Ctor.super) {
     const superOptions = resolveConstructorOptions(Ctor.super)
